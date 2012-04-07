@@ -1,0 +1,11 @@
+http://askubuntu.com/questions/68151/how-do-i-revert-alt-tab-behavior-changed-in-11-10
+
+- launch `ccsm`
+
+- disable unity switcher shortcuts
+    CCSM ▸ Desktop ▸ Ubuntu Unity Plugin ▸ Switcher ▸ Key to start the switcher ▸ Enabled
+    CCSM ▸ Desktop ▸ Ubuntu Unity Plugin ▸ Switcher ▸ Key to start the switcher in reverse ▸ Enabled
+
+- enable static application switcher
+    CCSM ▸ Window Management ▸ Static application switcher ▸ enable
+
