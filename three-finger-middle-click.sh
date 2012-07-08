@@ -3,11 +3,13 @@ set -eu
 
 usage() {
     cat >&2 <<EOM
-usage: $(basename "$0") ACTION
+usage: $(basename "$0") ACTION ...
 
-ACTION:
-    apply     Run synclient to enable three finger middle click.
+ACTION
     install   Install this script as a hotplug command so the setting persists.
+    [*]       Run synclient to enable three finger middle click.
+
+This script logs its arguments to syslog when run.
 EOM
 }
 
@@ -16,19 +18,25 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+log_cmd() {
+    logger -t "$(basename "$0")" "$*"
+}
+
 case "$1" in
-    apply)
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    install)
+        log_cmd "Installing hotplug hook (args: $*)"
+        setting=org.gnome.settings-daemon.peripherals.input-devices
+        script="$(readlink -e "$0")"
+        set -x
+        gsettings set "$setting" hotplug-command "$script"
+        ;;
+    *)
+        log_cmd "Applying synclient settings (args: $*)"
         set -x
         synclient TapButton3=2
         ;;
-    install)
-        setting=org.gnome.settings-daemon.peripherals.input-devices
-        set -x
-        gsettings set "$setting" hotplug-command "$0"
-        ;;
-    *)
-        usage
-        echo >&2
-        echo >&2 "Error: unknown ACTION"
-        exit 2
 esac
