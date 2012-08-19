@@ -32,11 +32,16 @@ case "$1" in
         setting=org.gnome.settings-daemon.peripherals.input-devices
         script="$(readlink -e "$0")"
         set -x
+        gsettings get "$setting" hotplug-command
         gsettings set "$setting" hotplug-command "$script"
         ;;
     *)
-        log_cmd "Applying synclient settings (args: $*)"
-        set -x
-        synclient TapButton3=2
+        if echo "$*" | grep Synaptics; then
+            log_cmd "Applying synclient settings (args: $*)"
+            set -x
+            synclient TapButton3=2
+        else
+            log_cmd "Ignoring event (args: $*)"
+        fi
         ;;
 esac
