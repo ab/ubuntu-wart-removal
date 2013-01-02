@@ -22,8 +22,11 @@ case "$1" in
         ;;
 esac
 
-echo "current: '$(gconftool -g /apps/metacity/general/button_layout)'"
-echo "target:  '$(gconftool -g /apps/metacity/general/button_layout)'"
+path="org.gnome.desktop.wm.preferences"
+var="button-layout"
+
+echo "current: '$(gsettings get "$path" "$var")'"
+echo "target:  '$layout'"
 
 set -x
-gconftool -t string -s /apps/metacity/general/button_layout "$layout"
+gsettings set "$path" "$var" "$layout"
