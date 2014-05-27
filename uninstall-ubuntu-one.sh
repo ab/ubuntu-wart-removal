@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eux
 
-rm -fv ~/Ubuntu\ One/Shared\ With\ me
+rm -fv ~/Ubuntu\ One/Shared\ With\ Me
 rmdir -v ~/Ubuntu\ One/
 
 killall -2 -v ubuntuone-login ubuntuone-preferences ubuntuone-syncdaemon
