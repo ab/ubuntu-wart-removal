@@ -1,11 +1,16 @@
 #!/bin/sh
 set -eux
 
-rm -fv ~/Ubuntu\ One/Shared\ With\ Me
-rmdir -v ~/Ubuntu\ One/
+if [ -e ~/Ubuntu\ One/ ]; then
+    rm -fv ~/Ubuntu\ One/Shared\ With\ Me
+    rmdir -v ~/Ubuntu\ One/
+fi
 
-killall -2 -v ubuntuone-login ubuntuone-preferences ubuntuone-syncdaemon
-killall -2 -v ubuntuone-login ubuntuone-preferences ubuntuone-syncdaemon || true
+if pgrep -fl ubuntuone; then
+    killall -2 -v ubuntuone-login ubuntuone-preferences ubuntuone-syncdaemon
+fi
+
+pgrep -fl ubuntuone && exit 2 || true
 
 rm -rf ~/.local/share/ubuntuone
 rm -rf ~/.cache/ubuntuone
