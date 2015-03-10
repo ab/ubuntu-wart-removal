@@ -21,6 +21,11 @@ diff_cp() {
     src="$1"
     dst="$2"
 
+    if [ ! -e "$src" ]; then
+        echo >&2 "No such file: $src"
+        return 2
+    fi
+
     if [ -e "$dst" ]; then
         "$DIFF" -u -- "$src" "$dst" && ret=$? || ret=$?
 
@@ -57,6 +62,6 @@ fi
 
 diff_cp "$u2f_src" /etc/udev/rules.d/70-u2f.rules
 
-yubikey_src="$(dirname "$0")/data/68-yubikey.rules"
+yubikey_src="$(dirname "$0")/data/69-yubikey.rules"
 
-diff_cp "$yubikey_src" /etc/udev/rules.d/68-yubikey.rules
+diff_cp "$yubikey_src" /etc/udev/rules.d/69-yubikey.rules
