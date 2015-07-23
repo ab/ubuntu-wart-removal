@@ -30,7 +30,7 @@ case "$(lsb_release -cs)" in
         disable_old
         ;;
 
-    trusty|utopic)
+    trusty|utopic|vivid)
         disable_trusty
         ;;
 
