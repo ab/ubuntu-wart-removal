@@ -1,0 +1,27 @@
+The Gnome Keyring's GPG agent doesn't play well with smart cards like yubikeys.
+
+http://blog.josefsson.org/2015/01/02/openpgp-smartcards-and-gnome/
+
+Disable the Gnome Keyring daemon in Startup Applications.
+
+I think this creates a file in ~/.config/autostart/gnome-keyring-gpg.desktop:
+
+    [Desktop Entry]
+    Type=Application
+    Name=GPG Password Agent
+    Comment=GNOME Keyring: GPG Agent
+    Exec=/usr/bin/gnome-keyring-daemon --start --components=gpg
+    OnlyShowIn=GNOME;Unity;MATE;
+    X-GNOME-Autostart-Phase=Initialization
+    X-GNOME-AutoRestart=false
+    X-GNOME-Autostart-Notify=true
+    X-GNOME-Bugzilla-Bugzilla=GNOME
+    X-GNOME-Bugzilla-Product=gnome-keyring
+    X-GNOME-Bugzilla-Component=general
+    X-GNOME-Bugzilla-Version=3.10.1
+    X-Ubuntu-Gettext-Domain=gnome-keyring
+    X-GNOME-Autostart-enabled=false
+
+Probably the important line here is this:
+
+    X-GNOME-Autostart-enabled=false
