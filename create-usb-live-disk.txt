@@ -1,0 +1,12 @@
+# How to create a live USB key without blowing away the partition in advance.
+# https://askubuntu.com/questions/372607/how-to-create-a-bootable-ubuntu-usb-flash-drive-from-terminal
+
+sudo mkdir /mnt/iso
+sudo mount -o loop path-to-ubuntu-cd.iso /mnt/iso
+cp -av /mnt/iso/. /media/$USER/<USB-DRIVE>/
+cd /media/$USER/<USB-DRIVE>/
+mv isolinux syslinux
+mv syslinux/{iso,sys}linux.cfg
+lsblk | grep /media # find your USB device
+sudo syslinux --install /dev/USB-partition (e.g. /dev/sdc1)
+sync
