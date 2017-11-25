@@ -12,7 +12,6 @@ disable_old() {
 
 disable_trusty() {
     conf_file=/etc/lightdm/lightdm.conf.d/50-guest.conf
-    sudo mkdir -vp "$(dirname "$conf_file")"
 
     if [ -e "$conf_file" ]; then
         echo "$conf_file already exists"
@@ -30,7 +29,7 @@ case "$(lsb_release -cs)" in
         disable_old
         ;;
 
-    trusty|utopic|vivid)
+    trusty|utopic|vivid|xenial)
         disable_trusty
         ;;
 
