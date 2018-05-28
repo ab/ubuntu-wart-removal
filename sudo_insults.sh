@@ -1,5 +1,13 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
+
+set -o noclobber
+
+run() {
+    echo >&2 "+ $*"
+    "$@"
+}
+
 
 if [ $UID -ne 0 ]; then
     echo "This script must be run as root."
@@ -7,10 +15,18 @@ if [ $UID -ne 0 ]; then
     exit 1
 fi
 
-if grep insults /etc/sudoers > /dev/null; then
+if grep insults /etc/sudoers /etc/sudoers.d/* > /dev/null; then
     echo "insults appear to be already enabled"
     exit 0
 fi
 
-pat='s/^Defaults	env_reset$/Defaults	env_reset,insults/'
-sed -i~ -e "$pat" /etc/sudoers
+conf_path=/etc/sudoers.d/insults
+run install -m 0440 <(echo 'Defaults	insults') "$conf_path"
+echo "Wrote config to $conf_path"
+
+if run visudo -c; then
+    echo "Insults enabled"
+else
+    echo "Something went wrong, starting interactive shell"
+    /bin/bash
+fi
