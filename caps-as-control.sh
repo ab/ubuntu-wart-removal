@@ -12,14 +12,17 @@ current_val="$(run gsettings get $schema $key)"
 
 desired_val="['terminate:ctrl_alt_bksp', 'caps:ctrl_modifier']"
 
-if [ -z "$current_val" ]; then
-    run gsettings set $schema $key \
-        "$desired_val"
-else
-    echo >&2 "$key already set to $current_val"
-    if [ "$current_val" != "$desired_val" ]; then
-        exit 1
-    else
-        exit 0
-    fi
-fi
+case "$current_val" in
+  ""|"@as []")
+    run gsettings set "$schema" "$key" "$desired_val"
+    ;;
+  "$desired_val")
+    echo >&2 "$key already set to desired val: $desired_val"
+    echo >&2 "Nothing to do"
+    ;;
+  *)
+    echo >&2 "Error: $key is nonempty, I don't know how to change safely"
+    echo >&2 "Current value: '$current_val'"
+    exit 1
+    ;;
+esac
