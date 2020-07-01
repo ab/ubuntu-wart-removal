@@ -1,0 +1,19 @@
+#!/bin/sh
+set -euo pipefail
+
+# https://www.omgubuntu.co.uk/2019/06/enable-fractional-scaling-ubuntu-19-04
+
+run() {
+    echo >&2 "+ $*"
+    "$@"
+}
+
+
+# For X11
+echo "Setting for X11"
+run gsettings set org.gnome.mutter experimental-features "['x11-randr-fractional-scaling']"
+
+# For wayland
+#run gsettings set org.gnome.mutter experimental-features "['scale-monitor-framebuffer']"
+
+echo "You should now see fractional options in display settings"
