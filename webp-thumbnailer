@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euo pipefail
+
+# See https://askubuntu.com/questions/617047/how-to-preview-dds-and-webp-images-on-nautilus
+
+if [ $# -eq 0 ]; then
+    cat >&2 <<EOM
+usage: $(basename "$0") --install
+usage: $(basename "$0") INFILE MAX_DIMENSION OUTFILE
+EOM
+    exit 1
+fi
+
+if [[ $1 == --install ]]; then
+    set -x
+    sudo cp -v "$0" /usr/local/bin/
+
+    # mkdir -vp ~/.local/share/thumbnailers
+    #tee ~/.local/share/thumbnailers/webp.thumbnailer <<EOM
+    tee /usr/share/thumbnailers/webp.thumbnailer <<EOM
+[Thumbnailer Entry]
+Exec=/usr/local/bin/webp-thumbnailer %i %s %o
+MimeType=image/webp;
+EOM
+
+    set +x
+    echo "OK, installed"
+    exit
+fi
+
+run() {
+    echo >&2 "+ $*"
+    "$@"
+}
+
+strInFile="$1"
+nMaxDimension="$2"
+strOutFile="$3"
+strInfo="$(run webpinfo "$strInFile")"
+strSize="$(echo "$strInfo" | grep Canvas | sed -r 's"Canvas size (.*) x (.*)"\1\t\2"')"
+nWidth="$(echo "$strSize" | cut -f1)"
+nHeight="$(echo "$strSize" | cut -f2)"
+if ((nWidth>nHeight)); then
+    nNewWidth=$nMaxDimension
+    nNewHeight=$(bc <<< "scale=10;f=$nHeight*($nNewWidth/$nWidth);scale=0;f/1")
+else
+    nNewHeight=$nMaxDimension
+    nNewWidth=$(bc <<< "scale=10;f=$nWidth*($nNewHeight/$nHeight);scale=0;f/1")
+fi
+run dwebp "$strInFile" -scale "$nNewWidth" "$nNewHeight" -o "$strOutFile"
