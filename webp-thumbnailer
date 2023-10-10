@@ -2,18 +2,22 @@
 set -euo pipefail
 
 # See https://askubuntu.com/questions/617047/how-to-preview-dds-and-webp-images-on-nautilus
+# Note: this is obsoleted by package webp-pixbuf-loader in Ubuntu >= 22.04
+
 
 if [ $# -eq 0 ]; then
     cat >&2 <<EOM
 usage: $(basename "$0") --install
 usage: $(basename "$0") INFILE MAX_DIMENSION OUTFILE
+
+Note: this is obsoleted by package webp-pixbuf-loader
 EOM
     exit 1
 fi
 
 if [[ $1 == --install ]]; then
     set -x
-    sudo cp -v "$0" /usr/local/bin/
+    sudo cp -v "$0" /usr/local/bin/webp-thumbnailer
 
     # mkdir -vp ~/.local/share/thumbnailers
     #tee ~/.local/share/thumbnailers/webp.thumbnailer <<EOM
