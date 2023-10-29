@@ -11,6 +11,9 @@ usage: $(basename "$0") OPTIONS
 
 Print an interactive dialog for initiating shut down or reboot of the computer.
 
+DBUS is used to send the shutdown/reboot signal, so sudo is not needed in a
+typical desktop setting. This can be run as a normal user.
+
 Options:
 
     -h, --help      Print this message
