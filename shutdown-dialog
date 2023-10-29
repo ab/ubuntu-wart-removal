@@ -117,7 +117,7 @@ prompt_and_shutdown() {
 
 install_script() {
     set -x
-    sudo cp -av "$0" /usr/local/bin/
+    sudo cp -v --preserve=timestamps "$0" /usr/local/bin/
 }
 
 if [ $# -ne 1 ]; then
