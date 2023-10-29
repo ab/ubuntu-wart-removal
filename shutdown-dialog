@@ -1,0 +1,141 @@
+#!/bin/bash
+set -euo pipefail
+
+# shutdown-dialog
+# Prompt for shutdown/restart, similar to Gnome 2 poweroff dialog
+
+
+usage() {
+    cat >&2 <<EOM
+usage: $(basename "$0") OPTIONS
+
+Print an interactive dialog for initiating shut down or reboot of the computer.
+
+Options:
+
+    -h, --help      Print this message
+    -p, --prompt    Show dialog and maybe shutdown computer
+    -i, --install   Install this script in /usr/local/bin/
+
+
+For example:
+
+    $(basename "$0") --prompt
+
+EOM
+}
+
+
+run() {
+    echo >&2 "+ $*"
+    "$@"
+}
+
+
+# Prompt for shutdown
+# Prints "cancel" | "reboot" | "shutdown" to stdout
+prompt_shutdown_actions() {
+    local ret out
+    out="$(
+        zenity --warning \
+            --icon-name=system-shutdown --title='' --ok-label='Cancel' \
+            --extra-button='Reboot' --extra-button='Shutdown' \
+            --text='Shut down this system now?'
+    )" && ret=$? || ret=$?
+
+    if [ "$ret" -eq 0 ]; then
+        # We relabeled the OK button as Cancel to get button order right
+        echo "cancel"
+        return
+    fi
+
+
+    if [ "$ret" -eq 1 ]; then
+        case "$out" in
+            "")
+                echo "cancel"
+                return
+                ;;
+            "Reboot")
+                echo "reboot"
+                return
+                ;;
+            "Shutdown")
+                echo "shutdown"
+                return
+                ;;
+            *)
+                echo >&2 "Unexpected Zenity stdout: '$out'"
+                return 2
+                ;;
+        esac
+    else
+        echo >&2 "Unexpected status $ret from zenity"
+        return 3
+    fi
+}
+
+
+dbus_reboot() {
+    run dbus-send --system --print-reply --dest=org.freedesktop.login1 \
+        /org/freedesktop/login1 "org.freedesktop.login1.Manager.Reboot" boolean:true
+}
+
+
+debus_poweroff() {
+    run dbus-send --system --print-reply --dest=org.freedesktop.login1 \
+        /org/freedesktop/login1 "org.freedesktop.login1.Manager.PowerOff" boolean:true
+}
+
+
+prompt_and_shutdown() {
+    local ans
+
+    ans="$(prompt_shutdown_actions)"
+    case "$ans" in
+        "cancel")
+            echo "cancel"
+            return
+            ;;
+        "reboot")
+            echo "reboot"
+            debus_reboot
+            ;;
+        "shutdown")
+            echo "shutdown"
+            dbus_poweroff
+            ;;
+        *)
+            echo >&2 "Unexpected ans from prompt_shutdown_actions: $ans"
+            return 1
+    esac
+}
+
+
+install_script() {
+    set -x
+    sudo cp -av "$0" /usr/local/bin/
+}
+
+if [ $# -ne 1 ]; then
+    usage
+    exit 1
+fi
+
+case "$1" in
+    -h|--help)
+        usage
+        exit
+        ;;
+    -p|--prompt)
+        prompt_and_shutdown
+        ;;
+    -i|--install)
+        install_script
+        ;;
+    *)
+        echo >&2 "Invalid option $1"
+        usage
+        exit
+        ;;
+esac
