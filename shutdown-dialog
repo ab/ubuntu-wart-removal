@@ -85,7 +85,7 @@ dbus_reboot() {
 }
 
 
-debus_poweroff() {
+dbus_poweroff() {
     run dbus-send --system --print-reply --dest=org.freedesktop.login1 \
         /org/freedesktop/login1 "org.freedesktop.login1.Manager.PowerOff" boolean:true
 }
@@ -102,7 +102,7 @@ prompt_and_shutdown() {
             ;;
         "reboot")
             echo "reboot"
-            debus_reboot
+            dbus_reboot
             ;;
         "shutdown")
             echo "shutdown"
