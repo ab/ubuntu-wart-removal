@@ -19,11 +19,23 @@ Options:
     -h, --help      Print this message
     -p, --prompt    Show dialog and maybe shutdown computer
     -i, --install   Install this script in /usr/local/bin/
+    --install-shortcuts    Update keyboard shortcuts
 
 
 For example:
 
     $(basename "$0") --prompt
+
+
+If --install-shortcuts is given, update Gnome keyboard shortcuts with the
+following:
+
+    logout      win + shift + q     (default ctrl + alt + del)
+    shutdown    ctrl + alt + del    (no default)
+    dialog      win + alt + del     (no default)
+
+All three are dialogs with confirmation. logout/shutdown use the built-in
+gnome-session-quit, whereas dialog uses this script.
 
 EOM
 }
@@ -120,6 +132,144 @@ install_script() {
     sudo cp -v --preserve=timestamps "$0" /usr/local/bin/
 }
 
+
+# usage: $0 NAME
+# Find the custom hotkey in dconf with the given name
+#
+# Note: NAME must contain literal ' characters, as in
+#   find_custom_hotkey "'foo'"
+#
+find_custom_hotkey() {
+    local target_name
+
+    if [ $# -ne 1 ]; then
+        echo >&2 "Must pass exactly 1 desired hotkey name"
+        return 1
+    fi
+    target_name="$1"
+
+    local dconf_dir
+    dconf_dir=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
+
+    local id
+    for id in $(dconf list "$dconf_dir/"); do
+        id="${id%/}"  # strip trailing /
+        name="$(dconf read "$dconf_dir/$id/name")"
+
+        if [ "$name" = "$target_name" ]; then
+            echo >&2 "Found existing custom hotkey id=$id name=$name"
+            echo "$id"
+            return
+        fi
+    done
+
+    # exit 0 whether we found something or not
+}
+
+
+# usage: dconf_write_if_needed KEY VALUE
+# Read current value of KEY. If it differs from VALUE, set it, and echo that we
+# did so.
+#
+# Note that VALUE should contain literal ' characters if it's a string, as in:
+#
+# dconf_write_if_needed /foo/bar/ "'string'"
+#
+dconf_write_if_needed() {
+    if [ $# -ne 2 ]; then
+        echo >&2 "dconf_write_if_needed takes 2 args"
+        return 1
+    fi
+    local key desired_val current
+    key="$1"
+    desired_val="$2"
+
+    current="$(dconf read "$key")"
+    if [ "$current" != "$desired_val" ]; then
+        run dconf write "$key" "$desired_val"
+    fi
+}
+
+
+# Usage: set_custom_hotkey NAME DEFAULT_ID BINDING COMMAND
+#
+# Set or update a custom hotkey using dconf
+#
+# NAME          User-visible label for the hotkey
+# DEFAULT_ID    Default ID in dconf for creating new hotkey, must be unique
+# BINDING       Hotkeys to press
+# COMMAND       Command to run
+#
+set_custom_hotkey() {
+    if [ $# -ne 4 ]; then
+        echo >&2 "set_custom_hotkey: bad usage -- takes 4 args"
+        return 1
+    fi
+    local name default_id binding cmd
+    name="$1"
+    default_id="$2"
+    binding="$3"
+    cmd="$4"
+
+    # name, binding, command all get wrapped in ' since they are strings in
+    # dconf
+    name="'$name'"
+    binding="'$binding'"
+    cmd="'$cmd'"
+
+    local custom_dir=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
+
+    # find custom hotkey matching our target name, if any
+    id="$(find_custom_hotkey "$name")"
+
+    if [ -z "$id" ]; then
+        # If ID is empty, we're creating a new custom command
+        id="$default_id"
+        run dconf write "$custom_dir/$id/name" "$name"
+
+        # add our ID to the list as well
+        local schema custom_list new_list
+        schema=org.gnome.settings-daemon.plugins.media-keys
+        custom_list="$(gsettings get "$schema" custom-keybindings)"
+
+        # strip trailing "]" and add ",'/newpath/']" (yes, this is horrendous)
+        new_list="${custom_list%]},'$custom_dir/$id/']"
+        run gsettings set "$schema" custom-keybindings "$new_list"
+    fi
+
+    # get/create binding and command
+    dconf_write_if_needed "$custom_dir/$id/binding" "$binding"
+    dconf_write_if_needed "$custom_dir/$id/command" "$cmd"
+}
+
+
+install_shortcuts() {
+    # logout      win + shift + q
+    # shutdown    ctrl + alt + del
+    # dialog      win + alt + del
+
+    # set logout, as needed
+    dconf_write_if_needed \
+        /org/gnome/settings-daemon/plugins/media-keys/logout "['<Shift><Super>q']"
+
+
+    # shutdown    ctrl + alt + del
+    set_custom_hotkey 'Shutdown' 'custom-shutdown' \
+        '<Primary><Alt>Delete' "gnome-session-quit --power-off"
+
+    # dialog      win + alt + del
+    set_custom_hotkey "AGB Shutdown Dialog" 'custom-agb-shutdown' \
+        '<Alt><Super>Delete' '/usr/local/bin/shutdown-dialog --prompt'
+
+    echo "All done."
+
+    if [ ! -x /usr/local/bin/shutdown-dialog ]; then
+        echo >&2 "WARNING: /usr/local/bin/shutdown-dialog does not exist or not executable"
+        echo >&2 "May need to call this script with --install"
+    fi
+}
+
+
 if [ $# -ne 1 ]; then
     usage
     exit 1
@@ -135,6 +285,9 @@ case "$1" in
         ;;
     -i|--install)
         install_script
+        ;;
+    --install-shortcuts)
+        install_shortcuts
         ;;
     *)
         echo >&2 "Invalid option $1"
