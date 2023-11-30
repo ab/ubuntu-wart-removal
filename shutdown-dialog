@@ -232,8 +232,14 @@ set_custom_hotkey() {
         schema=org.gnome.settings-daemon.plugins.media-keys
         custom_list="$(gsettings get "$schema" custom-keybindings)"
 
-        # strip trailing "]" and add ",'/newpath/']" (yes, this is horrendous)
-        new_list="${custom_list%]},'$custom_dir/$id/']"
+        # handle empty list
+        if [ "$custom_list" = '@as []' ]; then
+            new_list="['$custom_dir/$id/']"
+        else
+            # append
+            # strip trailing "]" and add ",'/newpath/']" (yes, this is horrendous)
+            new_list="${custom_list%]},'$custom_dir/$id/']"
+        fi
         run gsettings set "$schema" custom-keybindings "$new_list"
     fi
 
