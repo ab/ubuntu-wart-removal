@@ -33,6 +33,7 @@ following:
     logout      win + shift + q     (default ctrl + alt + del)
     shutdown    ctrl + alt + del    (no default)
     dialog      win + alt + del     (no default)
+    dialog      ctrl + win + del    (no default)
 
 All three are dialogs with confirmation. logout/shutdown use the built-in
 gnome-session-quit, whereas dialog uses this script.
@@ -264,8 +265,11 @@ install_shortcuts() {
         '<Primary><Alt>Delete' "gnome-session-quit --power-off"
 
     # dialog      win + alt + del
-    set_custom_hotkey "AGB Shutdown Dialog" 'custom-agb-shutdown' \
+    set_custom_hotkey "Custom Shutdown Dialog" 'custom-agb-shutdown' \
         '<Alt><Super>Delete' '/usr/local/bin/shutdown-dialog --prompt'
+    # dialog      ctrl + win + del
+    set_custom_hotkey "Custom Shutdown Dialog 2" 'custom-agb-shutdown-2' \
+        '<Primary><Super>Delete' '/usr/local/bin/shutdown-dialog --prompt'
 
     echo "All done."
 
