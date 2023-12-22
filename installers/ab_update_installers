@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+set -x
+
+wget --no-verbose -O fly-install.sh https://fly.io/install.sh
+chmod +x fly-install.sh
+
+git diff
