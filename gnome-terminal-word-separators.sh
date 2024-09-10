@@ -96,7 +96,7 @@ while [ $# -gt 0 ] && [[ $1 == -* ]]; do
             shift
             ;;
         --sensible-default)
-            non_word_separators='#%&+,-./:=?@_~'
+            non_word_separators='-#%&+,./:=?@_~'
             ;;
         --)
             shift
