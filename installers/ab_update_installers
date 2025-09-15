@@ -8,4 +8,7 @@ set -x
 wget --no-verbose -O fly-install.sh https://fly.io/install.sh
 chmod +x fly-install.sh
 
+wget --no-verbose -O mise-install.sh https://mise.run
+chmod +x mise-install.sh
+
 git diff
