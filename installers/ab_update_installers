@@ -11,4 +11,7 @@ chmod +x fly-install.sh
 wget --no-verbose -O mise-install.sh https://mise.run
 chmod +x mise-install.sh
 
+wget --no-verbose -O antigravity-install.sh https://antigravity.google/cli/install.sh
+chmod +x antigravity-install.sh
+
 git diff
